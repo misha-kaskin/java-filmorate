@@ -1,18 +1,19 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UploadException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @RestController
 public class FilmController {
-    private Map<Integer, Film> films = new HashMap<>();
-    private final static Logger log = LoggerFactory.getLogger(FilmController.class);
+    private Map<Integer, Film> films = new ConcurrentHashMap<>();
     private static final int MAX_DESCRIPTION_SIZE = 200;
     private Integer id = 1;
 
@@ -23,7 +24,7 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film post(@RequestBody Film film) {
+    public Film post(@RequestBody Film film) throws ValidationException {
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Передано пустое название фильма");
             throw new ValidationException("название не может быть пустым");
@@ -63,7 +64,7 @@ public class FilmController {
             return film;
         } else {
             log.warn("Обновление несуществующего фильма");
-            throw new ValidationException("Фильм еще не загружен");
+            throw new UploadException("Фильм еще не загружен");
         }
     }
 }
