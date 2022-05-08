@@ -74,6 +74,8 @@ public class FilmService {
 
         filmStorage.updateFilm(film);
 
+        filmSet = new LinkedHashSet<>(filmStorage.getAllFilms().values());
+
         filmSet = filmSet.stream()
                 .sorted((o1, o2) -> {
                     if (o1.getLikes().size() > o2.getLikes().size()) {
