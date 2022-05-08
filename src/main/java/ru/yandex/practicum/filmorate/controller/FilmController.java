@@ -1,70 +1,86 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 @Slf4j
 @RestController
 public class FilmController {
-    private Map<Integer, Film> films = new ConcurrentHashMap<>();
-    private static final int MAX_DESCRIPTION_SIZE = 200;
-    private Integer id = 1;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping("/films")
     public Map<Integer, Film> get() {
+        Map<Integer, Film> films = filmService.getAllFilms();
+
         log.info("Get-запрос /films успешно выполнен");
         return films;
     }
 
-    @PostMapping("/films")
-    public Film post(@RequestBody Film film) throws ValidationException {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("Передано пустое название фильма");
-            throw new ValidationException("название не может быть пустым");
-        }
+    @GetMapping("/films/{id}")
+    public Film getFilm(@PathVariable Integer id) {
+        Film film = filmService.getFilmById(id);
 
-        if (film.getDescription() == null || film.getDescription().length() > MAX_DESCRIPTION_SIZE) {
-            log.warn("Описание содержит более 200 символов");
-            throw new ValidationException("Длина описания превосходит максимальную");
-        }
-
-        if (film.getReleaseDate() == null
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.warn("Дата выхода фильма раньше допустимой");
-            throw new ValidationException("Фильм вышел раньше самого первого фильма");
-        }
-
-        if (film.getDuration() == null || film.getDuration() <= 0) {
-            log.warn("Передана не положителная продолжительность фильма");
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
-        }
-
-        log.info("Post-запрос /films успешно выполнен");
-
-        film.setId(id);
-        id++;
-
-        films.put(film.getId(), film);
+        log.info("Get-запрос /films успешно выполнен");
         return film;
     }
 
-    @PutMapping("/films")
-    public Film put(@RequestBody Film film) {
-        if (films.containsKey(film.getId())) {
-            log.info("Put-запрос /films успешно выполнен");
+    @PostMapping("/films")
+    public Film post(@RequestBody Film film) throws ValidationException {
+        Film newFilm = filmService.addNewFilm(film);
 
-            films.put(film.getId(), film);
-            return film;
+        log.info("Post-запрос /films успешно выполнен");
+        return newFilm;
+    }
+
+    @PutMapping("/films")
+    public Film put(@RequestBody Film film) throws ValidationException {
+        filmService.updateFilm(film);
+
+        return film;
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) {
+        filmService.like(id, userId);
+
+        log.info("/put - запрос на постановку лайка выполнен успешно");
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void removeLike(@PathVariable Integer id, @PathVariable Integer userId) {
+        filmService.removeLike(id, userId);
+
+        log.info("/delete - запрос на удаление лайка выполнен успешно");
+    }
+
+    @GetMapping("/films/popular")
+    public Set<Film> getPopularFilms(@RequestParam(required = false) Integer count) {
+        Set<Film> films;
+
+        if (count == null) {
+            films = filmService.getTenBestFilms();
+
+            log.info("/get - запрос на получение 10 популярных фильмов выполнен");
+
         } else {
-            log.warn("Обновление несуществующего фильма");
-            throw new UploadException("Фильм еще не загружен");
+            films = filmService.getBestFilm(count);
+
+            log.info("/get - запрос на получение "+ count +" популярных фильмов выполнен");
+
         }
+
+        return films;
     }
 }
