@@ -158,6 +158,11 @@ public class FilmService {
             throw new ValidationException("Длина описания превосходит максимальную");
         }
 
+        if (film.getDescription() == null || film.getDescription().isEmpty()) {
+            log.warn("Передано пустое описание");
+            throw new ValidationException("Передано пустое описание");
+        }
+
         if (film.getReleaseDate() == null
                 || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.warn("Дата выхода фильма раньше допустимой");

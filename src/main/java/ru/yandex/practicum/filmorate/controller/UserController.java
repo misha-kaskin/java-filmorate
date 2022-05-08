@@ -7,8 +7,11 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -29,11 +32,11 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public Map<Integer, User> get() {
+    public List<User> get() {
         Map<Integer, User> users = userService.getUsers();
 
         log.info("Get-запрос /users успешно выполнен");
-        return users;
+        return new ArrayList<>(users.values());
     }
 
     @GetMapping("/users/{id}")
