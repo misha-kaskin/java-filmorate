@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -61,7 +62,7 @@ public class FilmService {
         return film;
     }
 
-    public Film getFilmById(Integer id) {
+    public Film getFilmById(Integer id) throws NotFoundException {
         return filmStorage.getFilmById(id);
     }
 
@@ -73,6 +74,8 @@ public class FilmService {
         validateFilm(film);
 
         filmStorage.updateFilm(film);
+
+        filmSet = new LinkedHashSet<>(filmStorage.getAllFilms().values());
 
         filmSet = filmSet.stream()
                 .sorted((o1, o2) -> {
@@ -87,7 +90,7 @@ public class FilmService {
         return film;
     }
 
-    public void like(Integer id, Integer userId) {
+    public void like(Integer id, Integer userId) throws NotFoundException {
         Film film = filmStorage.getFilmById(id);
 
         Set<Integer> likes = film.getLikes();
@@ -105,7 +108,7 @@ public class FilmService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public void removeLike(Integer id, Integer userId) {
+    public void removeLike(Integer id, Integer userId) throws NotFoundException {
         Film film = filmStorage.getFilmById(id);
 
         Set<Integer> likes = film.getLikes();
@@ -123,7 +126,7 @@ public class FilmService {
                     })
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            throw new UploadException("Пользователь не ставил лайк фильму.");
+            throw new NotFoundException("Пользователь не ставил лайк фильму.");
         }
     }
 
@@ -158,7 +161,7 @@ public class FilmService {
             throw new ValidationException("Длина описания превосходит максимальную");
         }
 
-        if (film.getDescription() == null || film.getDescription().isEmpty()) {
+        if (film.getDescription().isEmpty()) {
             log.warn("Передано пустое описание");
             throw new ValidationException("Передано пустое описание");
         }

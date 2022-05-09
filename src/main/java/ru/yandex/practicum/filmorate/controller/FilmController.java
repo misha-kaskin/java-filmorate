@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -31,7 +33,7 @@ public class FilmController {
     }
 
     @GetMapping("/films/{id}")
-    public Film getFilm(@PathVariable Integer id) {
+    public Film getFilm(@PathVariable Integer id) throws NotFoundException {
         Film film = filmService.getFilmById(id);
 
         log.info("Get-запрос /films успешно выполнен");
@@ -54,14 +56,14 @@ public class FilmController {
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) {
+    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException {
         filmService.like(id, userId);
 
         log.info("/put - запрос на постановку лайка выполнен успешно");
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")
-    public void removeLike(@PathVariable Integer id, @PathVariable Integer userId) {
+    public void removeLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException {
         filmService.removeLike(id, userId);
 
         log.info("/delete - запрос на удаление лайка выполнен успешно");
@@ -84,5 +86,11 @@ public class FilmController {
         }
 
         return films;
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void handlerNotFound(final NotFoundException e) {
+
     }
 }
