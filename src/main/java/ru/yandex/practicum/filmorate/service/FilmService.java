@@ -62,7 +62,7 @@ public class FilmService {
         return film;
     }
 
-    public Film getFilmById(Integer id) {
+    public Film getFilmById(Integer id) throws NotFoundException {
         return filmStorage.getFilmById(id);
     }
 
@@ -90,7 +90,7 @@ public class FilmService {
         return film;
     }
 
-    public void like(Integer id, Integer userId) {
+    public void like(Integer id, Integer userId) throws NotFoundException {
         Film film = filmStorage.getFilmById(id);
 
         Set<Integer> likes = film.getLikes();
@@ -108,7 +108,7 @@ public class FilmService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public void removeLike(Integer id, Integer userId) {
+    public void removeLike(Integer id, Integer userId) throws NotFoundException {
         Film film = filmStorage.getFilmById(id);
 
         Set<Integer> likes = film.getLikes();
@@ -161,7 +161,7 @@ public class FilmService {
             throw new ValidationException("Длина описания превосходит максимальную");
         }
 
-        if (film.getDescription() == null || film.getDescription().isEmpty()) {
+        if (film.getDescription().isEmpty()) {
             log.warn("Передано пустое описание");
             throw new ValidationException("Передано пустое описание");
         }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -29,7 +30,7 @@ public class UserService {
         return userStorage.addUser(user);
     }
 
-    public User getUserById(Integer id) {
+    public User getUserById(Integer id) throws NotFoundException {
         return userStorage.getUserById(id);
     }
 
@@ -45,7 +46,7 @@ public class UserService {
         return user;
     }
 
-    public void friend(Integer id, Integer friendId) {
+    public void friend(Integer id, Integer friendId) throws NotFoundException {
         User user = userStorage.getUserById(id);
         User friend = userStorage.getUserById(friendId);
 
@@ -56,7 +57,7 @@ public class UserService {
         friendFriends.add(id);
     }
 
-    public void removeFriend(Integer id, Integer friendId) {
+    public void removeFriend(Integer id, Integer friendId) throws NotFoundException {
         User user = userStorage.getUserById(id);
         User friend = userStorage.getUserById(friendId);
 
@@ -71,7 +72,7 @@ public class UserService {
         }
     }
 
-    public Set<User> getUserFriends(Integer id) {
+    public Set<User> getUserFriends(Integer id) throws NotFoundException {
         User user = userStorage.getUserById(id);
 
         Set<Integer> userFriends = user.getFriends();
@@ -85,7 +86,7 @@ public class UserService {
         return friends;
     }
 
-    public Set<User> getCommonFriends (Integer id, Integer friendId) {
+    public Set<User> getCommonFriends (Integer id, Integer friendId) throws NotFoundException {
         Set<User> commonFriends = new HashSet<>();
 
         User user = userStorage.getUserById(id);
