@@ -1,10 +1,10 @@
 MERGE INTO genres(genre_id, name)
-VALUES (1, 'COMEDY'),
-       (2, 'DRAMA'),
-       (3, 'CARTOON'),
-       (4, 'THRILLER'),
-       (5, 'DOCUMENTARY'),
-       (6, 'ACTION');
+VALUES (1, 'Комедия'),
+       (2, 'Драма'),
+       (3, 'Мультфильм'),
+       (4, 'Триллер'),
+       (5, 'Документальный'),
+       (6, 'Боевик');
 
 MERGE INTO mpa(id, name)
 VALUES (1, 'G'),
