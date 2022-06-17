@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -51,7 +50,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(Integer id) throws NotFoundException {
+    public User getUserById(Integer id) {
         return jdbcTemplate.queryForObject(SQL_GET_USER_BY_ID,
                 (rs, rowNum) -> mapUser(rs),
                 id);

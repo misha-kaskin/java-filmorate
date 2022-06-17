@@ -31,7 +31,8 @@ public class LikeDbStorage {
     private static final String SQL_GET_FILM_GENRES = "SELECT * " +
             "FROM genres " +
             "WHERE genre_id IN(SELECT genre_id FROM film_genre WHERE film_id = ?)";
-    private static final String SQL_GET_POPULAR = "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa " +
+    private static final String SQL_GET_POPULAR = "SELECT f.film_id, f.name, f.description, " +
+            "f.release_date, f.duration, f.mpa " +
             "FROM films AS f " +
             "LEFT JOIN likes AS l ON l.film_id = f.film_id " +
             "GROUP BY f.film_id " +

@@ -20,10 +20,11 @@ import java.util.*;
 @Component
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
     private static final String SQL_GET_ALL_FILMS = "SELECT * FROM FILMS";
     private static final String SQL_GET_FILM_BY_ID = "SELECT * FROM FILMS WHERE FILM_ID = ?";
-    private static final String SQL_ADD_FILM = "INSERT INTO FILMS (name, description, release_date, duration, mpa) " +
+    private static final String SQL_ADD_FILM = "INSERT INTO FILMS (name, description, " +
+            "release_date, duration, mpa) " +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String SQL_GET_FILM_GENRES = "SELECT * " +
             "FROM genres " +
@@ -34,12 +35,17 @@ public class FilmDbStorage implements FilmStorage {
     private static final String SQL_ADD_GENRES = "INSERT INTO film_genre (film_id, genre_id)" +
             "VALUES (?, ?)";
     private static final String SQL_GET_FILM_ID = "SELECT film_id FROM films " +
-            "WHERE name = ? AND description = ? AND release_date = ? AND duration = ? AND mpa = ?";
-    private static final String SQL_GET_GENRE = "SELECT * FROM film_genre WHERE film_id = ? AND genre_id = ?";
+            "WHERE name = ? AND description = ? " +
+            "AND release_date = ? AND duration = ? AND mpa = ?";
+    private static final String SQL_GET_GENRE = "SELECT * " +
+            "FROM film_genre " +
+            "WHERE film_id = ? AND genre_id = ?";
     private static final String SQL_UPDATE_FILM = "UPDATE films " +
-            "SET film_id = ?, name = ?, description = ?, release_date = ?, duration = ?, mpa = ? " +
+            "SET film_id = ?, name = ?, description = ?, " +
+            "release_date = ?, duration = ?, mpa = ? " +
             "WHERE film_id = ?";
-    private static final String SQL_DELETE_GENRE = "DELETE FROM film_genre WHERE film_id = ?";
+    private static final String SQL_DELETE_GENRE = "DELETE FROM film_genre " +
+            "WHERE film_id = ?";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -47,7 +53,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getAllFilms() throws SQLException, NotFoundException {
+    public Collection<Film> getAllFilms() {
         List<Film> filmList = jdbcTemplate.query(SQL_GET_ALL_FILMS, (rs, rowNum) -> mapFilm(rs));
 
         log.debug("Запрошен список фильмов.");
@@ -93,8 +99,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film getFilmById(Integer id) throws NotFoundException {
         try {
-            Film film = jdbcTemplate.queryForObject(SQL_GET_FILM_BY_ID, (rs, rowNum) -> mapFilm(rs), id);
-            return film;
+            return jdbcTemplate.queryForObject(SQL_GET_FILM_BY_ID, (rs, rowNum) -> mapFilm(rs), id);
         } catch (Exception e) {
             throw new NotFoundException("Не найден фильм");
         }

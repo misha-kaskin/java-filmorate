@@ -54,7 +54,8 @@ public class UserController {
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")
-    public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId) throws NotFoundException, ValidationException {
+    public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId) throws NotFoundException,
+            ValidationException {
         userService.friend(id, friendId);
 
         log.info("Put-запрос на добавление в друзья успешно выполнен");

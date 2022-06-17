@@ -51,7 +51,8 @@ public class FilmController {
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException, ValidationException, SQLException {
+    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException,
+            ValidationException {
         filmService.like(id, userId);
 
         log.info("/put - запрос на постановку лайка выполнен успешно");

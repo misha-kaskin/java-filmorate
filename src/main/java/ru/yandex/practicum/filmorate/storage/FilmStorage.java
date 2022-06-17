@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Map;
 
 public interface FilmStorage {
     Collection<Film> getAllFilms() throws NotFoundException, SQLException;

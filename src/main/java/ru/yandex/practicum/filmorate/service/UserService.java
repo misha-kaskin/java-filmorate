@@ -4,14 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Slf4j
 @Service
@@ -35,8 +35,7 @@ public class UserService {
 
     public User getUserById(Integer id) throws NotFoundException {
         try {
-            User user = userStorage.getUserById(id);
-            return user;
+            return userStorage.getUserById(id);
         } catch (Exception e) {
             throw new NotFoundException("Не найден пользователь с id " + id);
         }

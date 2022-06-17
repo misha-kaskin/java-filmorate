@@ -4,18 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.*;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikeDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,7 +25,8 @@ public class FilmService {
     private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, MpaDbStorage mpaDbStorage, LikeDbStorage likeDbStorage, UserStorage userStorage) {
+    public FilmService(FilmStorage filmStorage, MpaDbStorage mpaDbStorage,
+                       LikeDbStorage likeDbStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.mpaDbStorage = mpaDbStorage;
         this.likeDbStorage = likeDbStorage;

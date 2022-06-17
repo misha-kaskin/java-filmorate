@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import javax.sql.RowSet;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
