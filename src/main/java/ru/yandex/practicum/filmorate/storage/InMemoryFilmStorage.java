@@ -1,14 +1,19 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private int id = 1;
 
@@ -20,8 +25,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Map<Integer, Film> getAllFilms() {
-        return films;
+    public Collection<Film> getAllFilms() {
+        return new ArrayList<>(films.values());
     }
 
     @Override
@@ -41,25 +46,9 @@ public class InMemoryFilmStorage implements FilmStorage {
             films.put(id, film);
 
             film.setId(id++);
+            log.info("Фильм добавлен в оперативную память");
+
             return film;
-        }
-    }
-
-    @Override
-    public void removeAll() {
-        if (films.isEmpty()) {
-            throw  new UploadException("Список фильмов пустой.");
-        } else {
-            films.clear();
-        }
-    }
-
-    @Override
-    public void removeFilmById(Integer id) {
-        if (films.containsKey(id)) {
-            films.remove(id);
-        } else {
-            throw new UploadException("Фильм не содержится в списке.");
         }
     }
 

@@ -7,9 +7,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,138 +21,72 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private static final int MAX_DESCRIPTION_SIZE = 200;
-
     private final FilmStorage filmStorage;
-
-    private Set<Film> filmSet;
+    private final MpaDbStorage mpaDbStorage;
+    private final LikeDbStorage likeDbStorage;
+    private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, MpaDbStorage mpaDbStorage, LikeDbStorage likeDbStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
-
-        filmSet = new LinkedHashSet<>();
-
-        filmSet.addAll(filmStorage.getAllFilms().values());
-
-        filmSet = filmSet.stream()
-                .sorted((o1, o2) -> {
-                    if (o1.getLikes().size() > o2.getLikes().size()) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        this.mpaDbStorage = mpaDbStorage;
+        this.likeDbStorage = likeDbStorage;
+        this.userStorage = userStorage;
     }
 
-    public Film addNewFilm(Film film) throws ValidationException {
+    public Film addNewFilm(Film film) throws ValidationException, NotFoundException {
         validateFilm(film);
-
-        filmStorage.addFilm(film);
-        filmSet.add(film);
-
-        filmSet = filmSet.stream()
-                .sorted((o1, o2) -> {
-                    if (o1.getLikes().size() > o2.getLikes().size()) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        return film;
+        if (film.getId() != null) {
+            throw new ValidationException("Передан не пустой идентификатор");
+        }
+        return filmStorage.addFilm(film);
     }
 
-    public Film getFilmById(Integer id) throws NotFoundException {
+    public Film getFilmById(Integer id) throws NotFoundException, SQLException {
         return filmStorage.getFilmById(id);
     }
 
-    public Map<Integer, Film> getAllFilms() {
+    public Collection<Film> getAllFilms() throws SQLException, NotFoundException {
         return filmStorage.getAllFilms();
     }
 
-    public Film updateFilm(Film film) throws ValidationException {
+    public Film updateFilm(Film film) throws ValidationException, NotFoundException {
         validateFilm(film);
-
-        filmStorage.updateFilm(film);
-
-        filmSet = new LinkedHashSet<>(filmStorage.getAllFilms().values());
-
-        filmSet = filmSet.stream()
-                .sorted((o1, o2) -> {
-                    if (o1.getLikes().size() > o2.getLikes().size()) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        return film;
+        if (film.getId() == null) {
+            throw new ValidationException("Передан пустой идентификатор");
+        }
+        return filmStorage.updateFilm(film);
     }
 
-    public void like(Integer id, Integer userId) throws NotFoundException {
-        Film film = filmStorage.getFilmById(id);
-
-        Set<Integer> likes = film.getLikes();
-
-        likes.add(userId);
-
-        filmSet = filmSet.stream()
-                .sorted((o1, o2) -> {
-                    if (o1.getLikes().size() > o2.getLikes().size()) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    public void like(Integer id, Integer userId) throws NotFoundException, ValidationException {
+        try {
+            userStorage.getUserById(id);
+            filmStorage.getFilmById(id);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден фильм либо пользователь");
+        }
+        likeDbStorage.like(id, userId);
     }
 
     public void removeLike(Integer id, Integer userId) throws NotFoundException {
-        Film film = filmStorage.getFilmById(id);
-
-        Set<Integer> likes = film.getLikes();
-
-        if (likes.contains(userId)) {
-            likes.remove(userId);
-
-            filmSet = filmSet.stream()
-                    .sorted((o1, o2) -> {
-                        if (o1.getLikes().size() > o2.getLikes().size()) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    })
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        } else {
-            throw new NotFoundException("Пользователь не ставил лайк фильму.");
+        try {
+            userStorage.getUserById(id);
+            filmStorage.getFilmById(id);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден фильм либо пользователь");
         }
+        likeDbStorage.removeLike(id, userId);
     }
 
-    public Set<Film> getTenBestFilms() {
-        if (filmSet.size() >= 10) {
-            return filmSet.stream()
-                    .limit(10)
-                    .collect(Collectors.toSet());
-        } else {
-            return filmSet;
-        }
+    public Collection<Film> getTenBestFilms() {
+        return likeDbStorage.getPopular(10);
     }
 
-    public Set<Film> getBestFilm(int count) {
-        if (count > filmSet.size()) {
-            throw new UploadException("Введенное число превышает общее количество фильмов.");
-        } else {
-            return filmSet.stream()
-                    .limit(count)
-                    .collect(Collectors.toSet());
-        }
+    public Collection<Film> getBestFilm(int count) {
+        return likeDbStorage.getPopular(count);
     }
 
-    public void validateFilm(Film film) throws ValidationException {
+    public void validateFilm(Film film) throws ValidationException, NotFoundException {
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Передано пустое название фильма");
             throw new ValidationException("название не может быть пустым");
@@ -175,6 +111,12 @@ public class FilmService {
         if (film.getDuration() == null || film.getDuration() <= 0) {
             log.warn("Передана не положителная продолжительность фильма");
             throw new ValidationException("Продолжительность фильма должна быть положительной");
+        }
+        if (film.getMpa() == null) {
+            throw new ValidationException("Пустое возрастное ограничение");
+        }
+        if (film.getMpa() != null) {
+            mpaDbStorage.getMpaById(film.getMpa().getId());
         }
     }
 }

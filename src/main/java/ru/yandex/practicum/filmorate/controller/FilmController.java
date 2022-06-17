@@ -9,10 +9,8 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.SQLException;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -25,15 +23,12 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public List<Film> get() {
-        Map<Integer, Film> films = filmService.getAllFilms();
-
-        log.info("Get-запрос /films успешно выполнен");
-        return new ArrayList<>(films.values());
+    public Collection<Film> get() throws SQLException, NotFoundException {
+        return filmService.getAllFilms();
     }
 
     @GetMapping("/films/{id}")
-    public Film getFilm(@PathVariable Integer id) throws NotFoundException {
+    public Film getFilm(@PathVariable Integer id) throws NotFoundException, SQLException {
         Film film = filmService.getFilmById(id);
 
         log.info("Get-запрос /films успешно выполнен");
@@ -41,7 +36,7 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film post(@RequestBody Film film) throws ValidationException {
+    public Film post(@RequestBody Film film) throws ValidationException, NotFoundException {
         Film newFilm = filmService.addNewFilm(film);
 
         log.info("Post-запрос /films успешно выполнен");
@@ -49,14 +44,14 @@ public class FilmController {
     }
 
     @PutMapping("/films")
-    public Film put(@RequestBody Film film) throws ValidationException {
+    public Film put(@RequestBody Film film) throws ValidationException, NotFoundException {
         filmService.updateFilm(film);
 
         return film;
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException {
+    public void putLike(@PathVariable Integer id, @PathVariable Integer userId) throws NotFoundException, ValidationException, SQLException {
         filmService.like(id, userId);
 
         log.info("/put - запрос на постановку лайка выполнен успешно");
@@ -70,19 +65,17 @@ public class FilmController {
     }
 
     @GetMapping("/films/popular")
-    public Set<Film> getPopularFilms(@RequestParam(required = false) Integer count) {
-        Set<Film> films;
+    public Collection<Film> getPopularFilms(@RequestParam(required = false) Integer count) {
+        Collection<Film> films;
 
         if (count == null) {
             films = filmService.getTenBestFilms();
 
             log.info("/get - запрос на получение 10 популярных фильмов выполнен");
-
         } else {
             films = filmService.getBestFilm(count);
 
             log.info("/get - запрос на получение "+ count +" популярных фильмов выполнен");
-
         }
 
         return films;

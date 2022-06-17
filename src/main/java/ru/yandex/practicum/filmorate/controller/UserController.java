@@ -9,10 +9,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -33,11 +30,10 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> get() {
-        Map<Integer, User> users = userService.getUsers();
+    public Collection<User> get() {
 
         log.info("Get-запрос /users успешно выполнен");
-        return new ArrayList<>(users.values());
+        return userService.getUsers();
     }
 
     @GetMapping("/users/{id}")
@@ -50,7 +46,7 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public User put(@RequestBody User user) throws ValidationException {
+    public User put(@RequestBody User user) throws ValidationException, NotFoundException {
         userService.updateUser(user);
 
         log.info("Put-запрос /users успешно выполнен");
@@ -58,7 +54,7 @@ public class UserController {
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")
-    public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId) throws NotFoundException {
+    public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId) throws NotFoundException, ValidationException {
         userService.friend(id, friendId);
 
         log.info("Put-запрос на добавление в друзья успешно выполнен");
@@ -72,8 +68,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}/friends")
-    public Set<User> getUserFriends(@PathVariable Integer id) throws NotFoundException {
-        Set<User> userFriends = userService.getUserFriends(id);
+    public Collection<User> getUserFriends(@PathVariable Integer id) throws NotFoundException {
+        Collection<User> userFriends = userService.getUserFriends(id);
 
         log.info("Get-запрос на получение списка друзей успешно выполнен");
 
@@ -81,9 +77,9 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}/friends/common/{otherId}")
-    public Set<User> getCommonFriends(@PathVariable Integer id,
+    public Collection<User> getCommonFriends(@PathVariable Integer id,
                                       @PathVariable Integer otherId) throws NotFoundException {
-        Set<User> commonFriends = userService.getCommonFriends(id, otherId);
+        Collection<User> commonFriends = userService.getCommonFriends(id, otherId);
 
         log.info("Get-запрос на получение списка общих друзей успешно выполнен");
 

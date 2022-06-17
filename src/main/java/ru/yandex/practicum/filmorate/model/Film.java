@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +16,6 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private Long duration;
-    @JsonIgnore
-    private Set<Integer> likes  = new HashSet<>();
+    private Mpa mpa;
+    private Collection<Genre> genres;
 }

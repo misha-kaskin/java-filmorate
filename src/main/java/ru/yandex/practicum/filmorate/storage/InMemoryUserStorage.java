@@ -6,6 +6,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UploadException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -20,8 +22,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Map<Integer, User> getAllUsers() {
-        return users;
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
     }
 
     @Override
@@ -42,24 +44,6 @@ public class InMemoryUserStorage implements UserStorage {
 
             user.setId(id++);
             return user;
-        }
-    }
-
-    @Override
-    public void removeAll() {
-        if (users.isEmpty()) {
-            throw  new UploadException("Список пользователей пустой.");
-        } else {
-            users.clear();
-        }
-    }
-
-    @Override
-    public void removeUserById(Integer id) {
-        if (users.containsKey(id)) {
-            users.remove(id);
-        } else {
-            throw new UploadException("Пользователь не содержится в списке.");
         }
     }
 
