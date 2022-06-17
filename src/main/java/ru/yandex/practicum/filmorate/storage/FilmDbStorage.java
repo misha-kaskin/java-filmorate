@@ -146,9 +146,10 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(SQL_UPDATE_FILM, film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
         jdbcTemplate.update(SQL_DELETE_GENRE, film.getId());
 
-        Collection<Genre> genres = new ArrayList<>();
+        Collection<Genre> genres = null;
 
         if (film.getGenres() != null) {
+            genres = new ArrayList<>();
             for (Genre genre : film.getGenres()) {
                 List<Integer> genreCollection = jdbcTemplate.query(SQL_GET_GENRE,
                         (rs, rowNum) -> rs.getInt("film_id"),
