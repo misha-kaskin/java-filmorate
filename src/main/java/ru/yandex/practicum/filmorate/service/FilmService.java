@@ -52,8 +52,14 @@ public class FilmService {
 
     public Film updateFilm(Film film) throws ValidationException, NotFoundException {
         validateFilm(film);
+
         if (film.getId() == null) {
             throw new ValidationException("Передан пустой идентификатор");
+        }
+        try {
+            filmStorage.getFilmById(film.getId());
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден фильм");
         }
         return filmStorage.updateFilm(film);
     }

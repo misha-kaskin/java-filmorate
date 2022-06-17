@@ -9,9 +9,9 @@ import java.util.Set;
 
 @Data
 public class User {
-    private String login;
-    private String name;
     private Integer id;
     private String email;
+    private String name;
+    private String login;
     private LocalDate birthday;
 }
