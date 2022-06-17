@@ -109,7 +109,7 @@ public class UserService {
             throw new NotFoundException("Не найден пользователь с id " + id);
         }
 
-        Collection<Integer> friendsId = friendDbStorage.getUserFriends(id);
+        Collection<Integer> friendsId = friendDbStorage.getCommonFriends(id, friendId);
         Collection<User> friends = new ArrayList<>();
         for (Integer friend : friendsId) {
             friends.add(userStorage.getUserById(friend));
