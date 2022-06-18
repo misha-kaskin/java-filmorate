@@ -3,104 +3,111 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.UploadException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Slf4j
 @Service
 public class UserService {
     private final UserStorage userStorage;
+    private final FriendDbStorage friendDbStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FriendDbStorage friendDbStorage) {
         this.userStorage = userStorage;
+        this.friendDbStorage = friendDbStorage;
     }
 
     public User createNewUser(User user) throws ValidationException {
         validateUser(user);
-
+        if (user.getId() != null) {
+            throw new ValidationException("Пользователь с не пустым id");
+        }
         return userStorage.addUser(user);
     }
 
-    public User getUserById(Integer id) {
-        return userStorage.getUserById(id);
+    public User getUserById(Integer id) throws NotFoundException {
+        try {
+            return userStorage.getUserById(id);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + id);
+        }
     }
 
-    public Map<Integer, User> getUsers() {
+    public Collection<User> getUsers() {
         return userStorage.getAllUsers();
     }
 
-    public User updateUser(User user) throws ValidationException {
+    public User updateUser(User user) throws ValidationException, NotFoundException {
         validateUser(user);
-
+        if (user.getId() == null) {
+            throw new ValidationException("Пользователь с пустым id");
+        }
+        try {
+            userStorage.getUserById(user.getId());
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + user.getId());
+        }
         userStorage.updateUser(user);
-
         return user;
     }
 
-    public void friend(Integer id, Integer friendId) {
-        User user = userStorage.getUserById(id);
-        User friend = userStorage.getUserById(friendId);
-
-        Set<Integer> userFriends = user.getFriends();
-        Set<Integer> friendFriends = friend.getFriends();
-
-        userFriends.add(friendId);
-        friendFriends.add(id);
-    }
-
-    public void removeFriend(Integer id, Integer friendId) {
-        User user = userStorage.getUserById(id);
-        User friend = userStorage.getUserById(friendId);
-
-        Set<Integer> userFriends = user.getFriends();
-        Set<Integer> friendFriends = friend.getFriends();
-
-        if (userFriends.contains(friendId)) {
-            userFriends.remove(friendId);
-            friendFriends.remove(id);
-        } else {
-            throw new UploadException("Пользователи не состоят в друзьях.");
+    public void friend(Integer id, Integer friendId) throws NotFoundException, ValidationException {
+        try {
+            userStorage.getUserById(id);
+            userStorage.getUserById(friendId);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + id);
         }
+        friendDbStorage.addFriend(id, friendId);
     }
 
-    public Set<User> getUserFriends(Integer id) {
-        User user = userStorage.getUserById(id);
+    public void removeFriend(Integer id, Integer friendId) throws NotFoundException {
+        try {
+            userStorage.getUserById(id);
+            userStorage.getUserById(friendId);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + id);
+        }
+        friendDbStorage.removeFriend(id, friendId);
+    }
 
-        Set<Integer> userFriends = user.getFriends();
+    public Collection<User> getUserFriends(Integer id) throws NotFoundException {
+        try {
+            userStorage.getUserById(id);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + id);
+        }
 
-        Set<User> friends = new HashSet<>();
-
-        for (Integer friendId : userFriends) {
+        Collection<Integer> friendsId = friendDbStorage.getUserFriends(id);
+        Collection<User> friends = new ArrayList<>();
+        for (Integer friendId : friendsId) {
             friends.add(userStorage.getUserById(friendId));
         }
-
         return friends;
     }
 
-    public Set<User> getCommonFriends (Integer id, Integer friendId) {
-        Set<User> commonFriends = new HashSet<>();
-
-        User user = userStorage.getUserById(id);
-        User friend = userStorage.getUserById(friendId);
-
-        Set<Integer> userFriends = user.getFriends();
-        Set<Integer> friendFriends = friend.getFriends();
-
-        for (Integer userId : userFriends) {
-            if (friendFriends.contains(userId)) {
-                commonFriends.add(userStorage.getUserById(userId));
-            }
+    public Collection<User> getCommonFriends (Integer id, Integer friendId) throws NotFoundException {
+        try {
+            userStorage.getUserById(id);
+            userStorage.getUserById(friendId);
+        } catch (Exception e) {
+            throw new NotFoundException("Не найден пользователь с id " + id);
         }
 
-        return commonFriends;
+        Collection<Integer> friendsId = friendDbStorage.getCommonFriends(id, friendId);
+        Collection<User> friends = new ArrayList<>();
+        for (Integer friend : friendsId) {
+            friends.add(userStorage.getUserById(friend));
+        }
+        return friends;
     }
 
     public void validateUser(User user) throws ValidationException {
