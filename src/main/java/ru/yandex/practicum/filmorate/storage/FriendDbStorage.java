@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.util.Collection;
 
@@ -22,6 +24,9 @@ public class FriendDbStorage {
     private static final String SQL_GET_COMMON_FRIENDS = "SELECT friend_id " +
             "FROM friends " +
             "WHERE user_id = ? AND friend_id IN(SELECT friend_id FROM friends WHERE user_id = ?)";
+    private static final String SQL_CONTAIN_IN_FRIENDS = "SELECT friend_id " +
+            "FROM friends " +
+            "WHERE user_id = ? AND friend_id = ?";
 
     @Autowired
     public FriendDbStorage(JdbcTemplate jdbcTemplate) {
@@ -34,8 +39,16 @@ public class FriendDbStorage {
                 userId);
     }
 
-    public void addFriend(Integer userId, Integer friendId){
-        if (!getUserFriends(friendId).contains(userId)) {
+    public void addFriend(Integer userId, Integer friendId) throws ValidationException {
+        if (!jdbcTemplate.query(SQL_CONTAIN_IN_FRIENDS,
+                (rs, rowNum) -> rs.getInt("friend_id"),
+                userId, friendId).isEmpty()) {
+            throw new ValidationException("Пользователь уже был добавлен в друзья");
+        }
+
+        if (jdbcTemplate.query(SQL_CONTAIN_IN_FRIENDS,
+                (rs, rowNum) -> rs.getInt("friend_id"),
+                friendId, userId).isEmpty()) {
             jdbcTemplate.update(SQL_ADD_TO_FRIEND,
                     userId, friendId, false);
         } else {
@@ -46,8 +59,16 @@ public class FriendDbStorage {
         }
     }
 
-    public void removeFriend(Integer userId, Integer friendId) {
-        if (!getUserFriends(friendId).contains(userId)) {
+    public void removeFriend(Integer userId, Integer friendId) throws NotFoundException {
+        if (jdbcTemplate.query(SQL_CONTAIN_IN_FRIENDS,
+                (rs, rowNum) -> rs.getInt("friend_id"),
+                userId, friendId).isEmpty()) {
+            throw new NotFoundException("Пользователь еще не добавлен в друзья");
+        }
+
+        if (jdbcTemplate.query(SQL_CONTAIN_IN_FRIENDS,
+                (rs, rowNum) -> rs.getInt("friend_id"),
+                friendId, userId).isEmpty()) {
             jdbcTemplate.update(SQL_DELETE_FRIEND,
                     userId, friendId);
         } else {

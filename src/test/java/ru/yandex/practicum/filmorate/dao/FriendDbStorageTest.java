@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
@@ -24,7 +25,7 @@ public class FriendDbStorageTest {
     private final FriendDbStorage friendDbStorage;
 
     @Test
-    void friendTest() throws ValidationException {
+    void friendTest() throws ValidationException, NotFoundException {
         User user1 = new User();
         user1.setId(null);
         user1.setEmail("user1@yandex.ru");

@@ -66,9 +66,6 @@ public class UserService {
         } catch (Exception e) {
             throw new NotFoundException("Не найден пользователь с id " + id);
         }
-        if (friendDbStorage.getUserFriends(id).contains(friendId)) {
-            throw new ValidationException("Пользователь уже добавлен раннее");
-        }
         friendDbStorage.addFriend(id, friendId);
     }
 
@@ -78,9 +75,6 @@ public class UserService {
             userStorage.getUserById(friendId);
         } catch (Exception e) {
             throw new NotFoundException("Не найден пользователь с id " + id);
-        }
-        if (!friendDbStorage.getUserFriends(id).contains(friendId)) {
-            throw new NotFoundException("Пользователь не состоит в списке друзей");
         }
         friendDbStorage.removeFriend(id, friendId);
     }

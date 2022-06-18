@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -17,21 +17,13 @@ import java.util.Collection;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private static final int MAX_DESCRIPTION_SIZE = 200;
     private final FilmStorage filmStorage;
     private final MpaDbStorage mpaDbStorage;
     private final LikeDbStorage likeDbStorage;
     private final UserStorage userStorage;
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, MpaDbStorage mpaDbStorage,
-                       LikeDbStorage likeDbStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.mpaDbStorage = mpaDbStorage;
-        this.likeDbStorage = likeDbStorage;
-        this.userStorage = userStorage;
-    }
 
     public Film addNewFilm(Film film) throws ValidationException, NotFoundException {
         validateFilm(film);
@@ -81,10 +73,6 @@ public class FilmService {
             throw new NotFoundException("Не найден фильм либо пользователь");
         }
         likeDbStorage.removeLike(id, userId);
-    }
-
-    public Collection<Film> getTenBestFilms() {
-        return likeDbStorage.getPopular(10);
     }
 
     public Collection<Film> getBestFilm(int count) {

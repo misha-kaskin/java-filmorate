@@ -66,19 +66,10 @@ public class FilmController {
     }
 
     @GetMapping("/films/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(required = false) Integer count) {
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
         Collection<Film> films;
-
-        if (count == null) {
-            films = filmService.getTenBestFilms();
-
-            log.info("/get - запрос на получение 10 популярных фильмов выполнен");
-        } else {
-            films = filmService.getBestFilm(count);
-
-            log.info("/get - запрос на получение "+ count +" популярных фильмов выполнен");
-        }
-
+        films = filmService.getBestFilm(count);
+        log.info("/get - запрос на получение "+ count +" популярных фильмов выполнен");
         return films;
     }
 
